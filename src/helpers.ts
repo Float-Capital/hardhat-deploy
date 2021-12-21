@@ -2242,9 +2242,6 @@ data: ${data}
       unknown,
     } = getFrom(options.from);
 
-    console.log("FROM", options);
-    console.log("FROM", from);
-
     let tx;
     const deployment = await partialExtension.get(name);
     const overrides = {

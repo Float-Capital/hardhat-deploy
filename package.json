@@ -1,6 +1,6 @@
 {
   "name": "@float-capital/hardhat-deploy",
-  "version": "0.9.14-ignore-admin6",
+  "version": "0.9.14-ignore-admin7",
   "description": "Hardhat Plugin For Replicable Deployments And Tests",
   "repository": "github:wighawag/hardhat-deploy",
   "author": "wighawag",

@@ -141,7 +141,6 @@ export interface DeployOptionsBase extends TxOptions {
 
 export interface DeployOptions extends DeployOptionsBase {
   deterministicDeployment?: boolean | string;
-  ignoreProxyAdmin?: boolean;
 }
 
 export interface Create2DeployOptions extends DeployOptionsBase {
