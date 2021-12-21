@@ -1397,16 +1397,17 @@ Note that in this case, the contract deployment will not behave the same if depl
         const changeImplementationMethod = oldProxy
           ? 'changeImplementation'
           : 'upgradeToAndCall';
-
-        if (currentOwner.toLowerCase() !== proxyAdmin.toLowerCase()) {
-          throw new Error(
-            `To change owner/admin, you need to call the proxy directly`
-          );
-        }
-        if (currentOwner === AddressZero) {
-          throw new Error(
-            'The Proxy belongs to no-one. It cannot be upgraded anymore'
-          );
+        if (options.ignoreProxyAdmin == true) {
+          if (currentOwner.toLowerCase() !== proxyAdmin.toLowerCase()) {
+            throw new Error(
+              `To change owner/admin, you need to call the proxy directly`
+            );
+          }
+          if (currentOwner === AddressZero) {
+            throw new Error(
+              'The Proxy belongs to no-one. It cannot be upgraded anymore'
+            );
+          }
         }
 
         if (proxyAdminName) {
