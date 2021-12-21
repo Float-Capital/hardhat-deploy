@@ -1397,7 +1397,7 @@ Note that in this case, the contract deployment will not behave the same if depl
         const changeImplementationMethod = oldProxy
           ? 'changeImplementation'
           : 'upgradeToAndCall';
-        if (options.ignoreProxyAdmin == true) {
+        if (options.ignoreProxyAdmin != true) {
           if (currentOwner.toLowerCase() !== proxyAdmin.toLowerCase()) {
             throw new Error(
               `To change owner/admin, you need to call the proxy directly`
