@@ -1397,7 +1397,8 @@ Note that in this case, the contract deployment will not behave the same if depl
         const changeImplementationMethod = oldProxy
           ? 'changeImplementation'
           : 'upgradeToAndCall';
-        if (options.ignoreProxyAdmin != true) {
+        let abiToUse
+        if (options.isUups != true) {
           if (currentOwner.toLowerCase() !== proxyAdmin.toLowerCase()) {
             throw new Error(
               `To change owner/admin, you need to call the proxy directly`
@@ -1407,6 +1408,13 @@ Note that in this case, the contract deployment will not behave the same if depl
             throw new Error(
               'The Proxy belongs to no-one. It cannot be upgraded anymore'
             );
+          }
+          abiToUse = proxy.abi;
+        } else {
+          if (!!oldDeployment) {
+            abiToUse = oldDeployment.abi;
+          } else {
+            abiToUse = implementation.abi;
           }
         }
 
@@ -1419,19 +1427,22 @@ Note that in this case, the contract deployment will not behave the same if depl
           }
 
           let executeReceipt;
+          const from = options.isUups ? ((!!options.uupsAdmin) ? options.uupsAdmin : options.from) : currentProxyAdminOwner
           if (updateMethod) {
-            executeReceipt = await execute(
+            executeReceipt = await executeBase(
               proxyAdminName,
-              {...options, from: currentProxyAdminOwner},
+              abiToUse,
+              {...options, from },
               'upgradeAndCall',
               proxy.address,
               implementation.address,
               data
             );
           } else {
-            executeReceipt = await execute(
+            executeReceipt = await executeBase(
               proxyAdminName,
-              {...options, from: currentProxyAdminOwner},
+              abiToUse,
+              {...options, from },
               'upgrade',
               proxy.address,
               implementation.address
@@ -1441,21 +1452,24 @@ Note that in this case, the contract deployment will not behave the same if depl
             throw new Error(`could not execute ${changeImplementationMethod}`);
           }
         } else {
+          const from = options.isUups ? ((!!options.uupsAdmin) ? options.uupsAdmin : options.from) : currentOwner
           let executeReceipt;
           if (
             changeImplementationMethod === 'upgradeToAndCall' &&
             !updateMethod
           ) {
-            executeReceipt = await execute(
+            executeReceipt = await executeBase(
               proxyName,
-              {...options, from: currentOwner},
+              abiToUse,
+              {...options, from },
               'upgradeTo',
               implementation.address
             );
           } else {
-            executeReceipt = await execute(
+            executeReceipt = await executeBase(
               proxyName,
-              {...options, from: currentOwner},
+              abiToUse,
+              {...options, from },
               changeImplementationMethod,
               implementation.address,
               data
@@ -1992,7 +2006,7 @@ Note that in this case, the contract deployment will not behave the same if depl
 
         const executeReceipt = await execute(
           name,
-          {...options, from: currentOwner},
+          {...options, from: options.isUups ? options.from : currentOwner},
           'diamondCut',
           facetCuts,
           data === '0x'
@@ -2201,6 +2215,24 @@ data: ${data}
     methodName: string,
     ...args: any[]
   ): Promise<Receipt> {
+    const deployment = await partialExtension.get(name);
+    const abi = deployment.abi;
+
+    return executeBase(
+      name,
+      abi,
+      options,
+      methodName,
+      ...args
+    );
+  }
+  async function executeBase(
+    name: string,
+    abi: ABI,
+    options: TxOptions,
+    methodName: string,
+    ...args: any[]
+  ): Promise<Receipt> {
     options = {...options}; // ensure no change
     await init();
     const {
@@ -2210,9 +2242,11 @@ data: ${data}
       unknown,
     } = getFrom(options.from);
 
+    console.log("FROM", options);
+    console.log("FROM", from);
+
     let tx;
     const deployment = await partialExtension.get(name);
-    const abi = deployment.abi;
     const overrides = {
       gasLimit: options.gasLimit,
       gasPrice: options.gasPrice ? BigNumber.from(options.gasPrice) : undefined, // TODO cinfig

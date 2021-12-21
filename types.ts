@@ -167,6 +167,8 @@ export interface TxOptions extends CallOptions {
   estimatedGasLimit?: string | number | BigNumber;
   estimateGasExtra?: string | number | BigNumber;
   waitConfirmations?: number;
+  isUups?: boolean;
+  uupsAdmin?: string;
 }
 
 export interface Execute extends TxOptions {
